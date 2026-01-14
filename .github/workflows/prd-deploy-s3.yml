@@ -1,0 +1,47 @@
+name: PRD-Deploy-S3
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - '.github/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.head_ref == 'main' || github.ref_name == 'main' }}
+
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Baixando código do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurando credenciais da AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.CICD_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_AWS_SECRET }}
+          aws-region: sa-east-1
+
+      - name: Obtendo secret do Secret Manager
+        uses: t-botz/aws-secrets-manager-read-action@45282af736fa0ae7e0559ed105b42538344cb864
+        with:
+          secret-id: SM/GHA-log-unstract/prd-front
+          mask-json-values: true
+          append-to-env-file: .env
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+
+      - name: Sincronizando arquivos com o S3
+        run: aws s3 sync ./build s3://log-unstract.logcomex.io
+
+      - name: Invalidando cache do Cloudfront
+        run: aws cloudfront create-invalidation --distribution-id E1Y6JKAHT7FO1H --paths "/*"
