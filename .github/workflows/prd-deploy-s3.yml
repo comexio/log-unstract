@@ -11,16 +11,15 @@ on:
 jobs:
   deploy:
     if: ${{ github.head_ref == 'main' || github.ref_name == 'main' }}
-
     name: Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Baixando código do repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurando credenciais da AWS
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.CICD_AWS_KEY }}
           aws-secret-access-key: ${{ secrets.CICD_AWS_SECRET }}
@@ -31,17 +30,24 @@ jobs:
         with:
           secret-id: SM/GHA-log-unstract/prd-front
           mask-json-values: true
-          append-to-env-file: .env
+          append-to-env-file: log-unstract/frontend/.env
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-      - run: npm ci
-      - run: npm run build
+          cache-dependency-path: log-unstract/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: log-unstract/frontend
+
+      - name: Build project
+        run: npm run build
+        working-directory: log-unstract/frontend
 
       - name: Sincronizando arquivos com o S3
-        run: aws s3 sync ./build s3://log-unstract.logcomex.io
+        run: aws s3 sync ./log-unstract/frontend/build s3://log-unstract.logcomex.io
 
       - name: Invalidando cache do Cloudfront
         run: aws cloudfront create-invalidation --distribution-id E1Y6JKAHT7FO1H --paths "/*"
