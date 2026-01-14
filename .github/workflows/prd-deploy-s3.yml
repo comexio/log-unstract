@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - 'main'
-    paths-ignore:
-      - '.github/**'
   workflow_dispatch:
 
 jobs:
@@ -30,24 +28,24 @@ jobs:
         with:
           secret-id: SM/GHA-log-unstract/prd-front
           mask-json-values: true
-          append-to-env-file: log-unstract/frontend/.env
+          append-to-env-file: frontend/.env
 
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: log-unstract/frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: log-unstract/frontend
+        working-directory: frontend
 
       - name: Build project
         run: npm run build
-        working-directory: log-unstract/frontend
+        working-directory: frontend
 
       - name: Sincronizando arquivos com o S3
-        run: aws s3 sync ./log-unstract/frontend/build s3://log-unstract.logcomex.io
+        run: aws s3 sync ./frontend/build s3://log-unstract.logcomex.io
 
       - name: Invalidando cache do Cloudfront
         run: aws cloudfront create-invalidation --distribution-id E1Y6JKAHT7FO1H --paths "/*"
