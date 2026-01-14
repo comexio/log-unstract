@@ -45,7 +45,7 @@ jobs:
         working-directory: frontend
 
       - name: Sincronizando arquivos com o S3
-        run: aws s3 sync ./frontend/build s3://log-unstract.logcomex.io
+        run: aws s3 sync ./frontend/build s3://log-unstract.logcomex.net
 
       - name: Invalidando cache do Cloudfront
         run: aws cloudfront create-invalidation --distribution-id E1Y6JKAHT7FO1H --paths "/*"
