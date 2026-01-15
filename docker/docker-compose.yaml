@@ -12,7 +12,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     volumes:
       - prompt_studio_data:/app/prompt-studio-data
       - ./workflow_data:/data
@@ -34,7 +34,7 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend worker --loglevel=info -Q celery,celery_api_deployments --autoscale=${WORKER_AUTOSCALE}"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker
@@ -52,7 +52,7 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend worker --loglevel=info -Q celery_periodic_logs,celery_log_task_queue --autoscale=${WORKER_LOGGING_AUTOSCALE}"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-logging
@@ -67,7 +67,7 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend.workers.file_processing worker --loglevel=info -Q file_processing,api_file_processing --autoscale=${WORKER_FILE_PROCESSING_AUTOSCALE}"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing
@@ -84,7 +84,7 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend.workers.file_processing_callback worker --loglevel=info -Q file_processing_callback,api_file_processing_callback --autoscale=${WORKER_FILE_PROCESSING_CALLBACK_AUTOSCALE}"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing-callback
@@ -102,7 +102,7 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend flower --port=5555 --purge_offline_workers=5"
     env_file:
-      - ../backend/.env
+      - ../backend/sample.env
     depends_on:
       - worker
       - worker-logging
@@ -126,8 +126,8 @@ services:
     entrypoint: .venv/bin/celery
     command: "-A backend beat --scheduler django_celery_beat.schedulers:DatabaseScheduler -l INFO"
     env_file:
-      - ../backend/.env
-      - ./essentials.env
+      - ../backend/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-celery-beat
@@ -139,7 +139,7 @@ services:
     ports:
       - "3001:3001"
     env_file:
-      - ../platform-service/.env
+      - ../platform-service/sample.env
     labels:
       - traefik.enable=false
 
@@ -153,7 +153,7 @@ services:
     ports:
       - "3003:3003"
     env_file:
-      - ../prompt-service/.env
+      - ../prompt-service/sample.env
     labels:
       - traefik.enable=false
     extra_hosts:
@@ -167,7 +167,7 @@ services:
     ports:
       - "3004:3004"
     env_file:
-      - ../x2text-service/.env
+      - ../x2text-service/sample.env
     labels:
       - traefik.enable=false
 
@@ -178,7 +178,7 @@ services:
     ports:
       - 5002:5002
     env_file:
-      - ../runner/.env
+      - ../runner/sample.env
     volumes:
       - ./workflow_data:/data
       # Docker socket bind mount to spawn tool containers
@@ -198,8 +198,8 @@ services:
     ports:
       - "8085:8090"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-api-deployment-v2
@@ -228,8 +228,8 @@ services:
     ports:
       - "8086:8083"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-callback-v2
@@ -267,8 +267,8 @@ services:
     ports:
       - "8087:8082"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing-v2
@@ -302,8 +302,8 @@ services:
     ports:
       - "8088:8082"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-general-v2
@@ -327,8 +327,8 @@ services:
     ports:
       - "8089:8085"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-notification-v2
@@ -373,8 +373,8 @@ services:
     ports:
       - "8090:8084"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-log-consumer-v2
@@ -419,8 +419,8 @@ services:
     entrypoint: ["/bin/bash"]
     command: ["/app/log_consumer/scheduler.sh"]
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-log-history-scheduler-v2
@@ -441,8 +441,8 @@ services:
     ports:
       - "8091:8087"
     env_file:
-      - ../workers/.env
-      - ./essentials.env
+      - ../workers/sample.env
+      - ./sample.essentials.env
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-scheduler-v2
