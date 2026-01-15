@@ -1,6 +1,4 @@
 name: ${COMPOSE_PROJECT_NAME:-docker}
-include:
-  - docker-compose-dev-essentials.yaml
 
 services:
   # Backend service
@@ -13,20 +11,9 @@ services:
       - "8000:8000"
     env_file:
       - ../backend/.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
-      - reverse-proxy
-      - minio
-      - minio-bootstrap
-      - platform-service
-      - prompt-service
-      - x2text-service
     volumes:
       - prompt_studio_data:/app/prompt-studio-data
       - ./workflow_data:/data
-      - ${TOOL_REGISTRY_CONFIG_SRC_PATH}:/data/tool_registry_config
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-backend
@@ -46,9 +33,6 @@ services:
     command: "-A backend worker --loglevel=info -Q celery,celery_api_deployments --autoscale=${WORKER_AUTOSCALE}"
     env_file:
       - ../backend/.env
-    depends_on:
-      - rabbitmq
-      - db
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker
@@ -67,9 +51,6 @@ services:
     command: "-A backend worker --loglevel=info -Q celery_periodic_logs,celery_log_task_queue --autoscale=${WORKER_LOGGING_AUTOSCALE}"
     env_file:
       - ../backend/.env
-    depends_on:
-      - rabbitmq
-      - db
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-logging
@@ -85,9 +66,6 @@ services:
     command: "-A backend.workers.file_processing worker --loglevel=info -Q file_processing,api_file_processing --autoscale=${WORKER_FILE_PROCESSING_AUTOSCALE}"
     env_file:
       - ../backend/.env
-    depends_on:
-      - rabbitmq
-      - db
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing
@@ -105,9 +83,6 @@ services:
     command: "-A backend.workers.file_processing_callback worker --loglevel=info -Q file_processing_callback,api_file_processing_callback --autoscale=${WORKER_FILE_PROCESSING_CALLBACK_AUTOSCALE}"
     env_file:
       - ../backend/.env
-    depends_on:
-      - rabbitmq
-      - db
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing-callback
@@ -129,7 +104,6 @@ services:
     depends_on:
       - worker
       - worker-logging
-      - rabbitmq
     labels:
       - traefik.enable=false
     ports:
@@ -152,28 +126,9 @@ services:
     env_file:
       - ../backend/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-celery-beat
-
-  # Frontend React app
-  frontend:
-    image: unstract/frontend:${VERSION}
-    container_name: unstract-frontend
-    restart: unless-stopped
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-      - reverse-proxy
-    environment:
-      - ENVIRONMENT=development
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.frontend.rule=Host(`frontend.unstract.localhost`) && !PathPrefix(`/api/v1`) && !PathPrefix(`/deployment`)
 
   platform-service:
     image: unstract/platform-service:${VERSION}
@@ -183,9 +138,6 @@ services:
       - "3001:3001"
     env_file:
       - ../platform-service/.env
-    depends_on:
-      - redis
-      - db
     labels:
       - traefik.enable=false
 
@@ -194,10 +146,8 @@ services:
     container_name: unstract-prompt-service
     restart: unless-stopped
     depends_on:
-      - db
       - minio
       - minio-bootstrap
-      - rabbitmq
     ports:
       - "3003:3003"
     env_file:
@@ -216,8 +166,6 @@ services:
       - "3004:3004"
     env_file:
       - ../x2text-service/.env
-    depends_on:
-      - db
     labels:
       - traefik.enable=false
 
@@ -233,9 +181,6 @@ services:
       - ./workflow_data:/data
       # Docker socket bind mount to spawn tool containers
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - redis
-      - rabbitmq
     labels:
       - traefik.enable=false
 
@@ -253,10 +198,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-api-deployment-v2
@@ -287,10 +228,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-callback-v2
@@ -330,10 +267,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-file-processing-v2
@@ -369,10 +302,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-general-v2
@@ -398,10 +327,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-notification-v2
@@ -448,10 +373,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-log-consumer-v2
@@ -498,10 +419,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-log-history-scheduler-v2
@@ -524,10 +441,6 @@ services:
     env_file:
       - ../workers/.env
       - ./essentials.env
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
     environment:
       - ENVIRONMENT=development
       - APPLICATION_NAME=unstract-worker-scheduler-v2
